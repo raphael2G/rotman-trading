@@ -17,6 +17,7 @@ s.headers.update({'X-API-key': 'TYMMUBC9'}) # Make sure you use YOUR API Key
 MAX_LONG_EXPOSURE = 300000
 MAX_SHORT_EXPOSURE = -100000
 ORDER_LIMIT = 5000
+MIN_SPREAD = 0.05
 
 def get_tick():
     resp = s.get('http://localhost:9999/v1/case')
@@ -81,16 +82,20 @@ def main():
             ticker_symbol = ticker_list[i]
             position = get_position()
             best_bid_price, best_ask_price = get_bid_ask(ticker_symbol)
-       
-            if position < MAX_LONG_EXPOSURE:
-                resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_bid_price, 'action': 'BUY'})
-                print("just placed buy")
 
-            if position > MAX_SHORT_EXPOSURE:
-                resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price, 'action': 'SELL'})
-                print("just placed sell")
+
+            # only place orders if we meet a certain spread
+            spread = best_ask_price - best_bid_price
+            if spread >= MIN_SPREAD: 
+                if position < MAX_LONG_EXPOSURE:
+                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_bid_price, 'action': 'BUY'})
+                    print("just placed buy")
+
+                if position > MAX_SHORT_EXPOSURE:
+                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price, 'action': 'SELL'})
+                    print("just placed sell")
+
             sleep(0.75) 
-
             s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': ticker_symbol})
 
         tick, status = get_tick()
