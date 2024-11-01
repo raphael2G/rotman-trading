@@ -11,7 +11,7 @@ from time import sleep
 # numpy, pandas
 
 s = requests.Session()
-s.headers.update({'X-API-key': 'NLJFH66O'}) # Make sure you use YOUR API Key
+s.headers.update({'X-API-key': 'TYMMUBC9'}) # Make sure you use YOUR API Key
 
 # global variables
 MAX_LONG_EXPOSURE = 300000
@@ -84,10 +84,11 @@ def main():
        
             if position < MAX_LONG_EXPOSURE:
                 resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_bid_price, 'action': 'BUY'})
-                
+                print("just placed buy")
+
             if position > MAX_SHORT_EXPOSURE:
                 resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price, 'action': 'SELL'})
-
+                print("just placed sell")
             sleep(0.75) 
 
             s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': ticker_symbol})
@@ -95,7 +96,9 @@ def main():
         tick, status = get_tick()
 
 if __name__ == '__main__':
+    print("Beggining Execution")
     main()
+    print("finished execution")
 
 
 
