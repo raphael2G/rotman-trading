@@ -74,6 +74,10 @@ def get_order_status(order_id):
 def main():
     tick, status = get_tick()
     ticker_list = ['OWL','CROW','DOVE','DUCK']
+    MIN_SPREAD = {'OWL':  0.05, 
+                  'CROW': 0.05, 
+                  'DOVE': 0.05,
+                  'DUCK': 0.05 }
 
     while status == 'ACTIVE':        
 
@@ -86,16 +90,18 @@ def main():
 
             # only place orders if we meet a certain spread
             spread = best_ask_price - best_bid_price
-            if spread >= MIN_SPREAD: 
+            if spread >= MIN_SPREAD[ticker_symbol]: 
                 if position < MAX_LONG_EXPOSURE:
-                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_bid_price, 'action': 'BUY'})
+                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_bid_price + 0.01, 'action': 'BUY'})
                     print("just placed buy")
 
                 if position > MAX_SHORT_EXPOSURE:
-                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price, 'action': 'SELL'})
+                    resp = s.post('http://localhost:9999/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price - 0.01, 'action': 'SELL'})
                     print("just placed sell")
+            else: 
+                print("Spread too low: ", spread)
 
-            sleep(0.75) 
+            sleep(0.2) 
             s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': ticker_symbol})
 
         tick, status = get_tick()
