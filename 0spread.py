@@ -95,36 +95,52 @@ def main():
     while status == 'ACTIVE':   
 
 
-        for ticker_symbol in ['OWL']:
-            print("checking", ticker_symbol)
+        print("checking owl")
 
-            current_position = get_current_position(ticker_symbol)
-            best_bid_price, best_ask_price = get_bid_ask(ticker_symbol)
-            
-            split_price = round_price((best_bid_price + best_ask_price) / 2)
-            print("current position: ", current_position)
-            # put 0 spread buy / sell limit orders
+        owl_current_position = get_current_position('OWL')
+        best_bid_price, best_ask_price = get_bid_ask('OWL')
+        
+        print("OWL current position: ", owl_current_position)
+        # put 0 spread buy / sell limit orders
 
-            if current_position == 0: 
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': (ORDER_LIMIT), 'price': best_bid_price + 0.01, 'action': 'BUY'})
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price - 0.01, 'action': 'SELL'})
-            elif current_position < 0: 
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': min(-current_position, ORDER_LIMIT), 'price': best_bid_price + 0.01 , 'action': 'BUY'})
-            elif current_position > 0: 
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': min(current_position, ORDER_LIMIT), 'price': best_ask_price - 0.01, 'action': 'SELL'})
-            
-            sleep(0.1)
-            s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': ticker_symbol})
+        if owl_current_position == 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'OWL', 'type': 'LIMIT', 'quantity': (ORDER_LIMIT), 'price': best_bid_price + 0.01, 'action': 'BUY'})
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'OWL', 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price - 0.01, 'action': 'SELL'})
+        elif owl_current_position < 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'OWL', 'type': 'LIMIT', 'quantity': min(-owl_current_position, ORDER_LIMIT), 'price': best_bid_price + 0.01 , 'action': 'BUY'})
+        elif owl_current_position > 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'OWL', 'type': 'LIMIT', 'quantity': min(owl_current_position, ORDER_LIMIT), 'price': best_ask_price - 0.01, 'action': 'SELL'})
+        
 
-            #if -ORDER_LIMIT <= current_position  and current_position <= 0:
-                #print("bought: ", current_position)
-                #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'BUY'})
+        print("checking ducK")
 
-            #if 0 <= current_position and current_position <= ORDER_LIMIT:
-                #print("sold: ", current_position)
-                #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'SELL'})
+        duck_current_pos = get_current_position('DUCK')
+        best_bid_price, best_ask_price = get_bid_ask('DUCK')
+        
+        print("DUCK current position: ", duck_current_pos)
+        # put 0 spread buy / sell limit orders
 
-            
+        if duck_current_pos == 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'DUCK', 'type': 'LIMIT', 'quantity': (ORDER_LIMIT), 'price': best_bid_price + 0.01, 'action': 'BUY'})
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'DUCK', 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price - 0.01, 'action': 'SELL'})
+        elif duck_current_pos < 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'DUCK', 'type': 'LIMIT', 'quantity': min(-duck_current_pos, ORDER_LIMIT), 'price': best_bid_price + 0.01 , 'action': 'BUY'})
+        elif duck_current_pos > 0: 
+            resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': 'DUCK', 'type': 'LIMIT', 'quantity': min(duck_current_pos, ORDER_LIMIT), 'price': best_ask_price - 0.01, 'action': 'SELL'})
+
+        sleep(0.1)
+        s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': 'OWL'})
+        s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': 'DUCK'})
+
+        #if -ORDER_LIMIT <= current_position  and current_position <= 0:
+            #print("bought: ", current_position)
+            #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'BUY'})
+
+        #if 0 <= current_position and current_position <= ORDER_LIMIT:
+            #print("sold: ", current_position)
+            #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'SELL'})
+
+        
 
         tick, status = get_tick()
 
