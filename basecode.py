@@ -74,10 +74,15 @@ def get_order_status(order_id):
         return order['status']
 
 def get_current_position(ticker): 
-    resp = s.get ('http://localhost:9999/v1/securities' + '/' + str(ticker))
+    resp = s.get ('http://localhost:9999/v1/securities', params={'ticker': ticker})
     if resp.ok: 
-        security = resp.json()
-        return security["position"]
+        securities = resp.json()
+        if securities: 
+            security = securities[0]
+            return security.get("position", None)
+    else: 
+        print("did not work")
+        return None
 
 
 def fetch_price_history(ticker, count):
@@ -97,7 +102,7 @@ def calculate_volatility(ticker, count=60):
     prices = fetch_price_history(ticker, count)
     # this returns the std of the log volatility
     # this is the log of how much each trade increases
-    log_returns = np.log(prices[1:]/prices[:-1])
+    log_returns = np.log(np.array(prices[1:])/np.array(prices[:-1]))
     volatility = np.std(log_returns)
     return volatility
 
@@ -143,15 +148,15 @@ def OWL_trading_strat(GAMMA = 0.1):
     mid_price = (best_bid_price + best_ask_price) / 2
 
     current_position = get_current_position('OWL')
-    order_arrival_rate = calculate_order_arrival_rate('OWL', 60)
-    std_volatility = calculate_volatility()
+    # order_arrival_rate = calculate_order_arrival_rate('OWL', 60)
+    std_volatility = calculate_volatility('OWL')
 
 
     base_spread = GAMMA * std_volatility * std_volatility / 2
 
     # this will be positive if our current position is postiive. This makes us have lower buy offers, and lower sell offers, pushing our inventory back to 0. this will cause us to buy less and sell more
     # this is cause we subtrqact 
-    inventory_adjustment = GAMMA * std_volatility * std_volatility * current_position / order_arrival_rate
+    inventory_adjustment = GAMMA * std_volatility * std_volatility * current_position
 
     calculated_price_of_bid = mid_price - base_spread + inventory_adjustment
     calculated_price_of_ask = mid_price + base_spread + inventory_adjustment
