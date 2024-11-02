@@ -18,7 +18,7 @@ s.headers.update({'X-API-key': 'TYMMUBC9'}) # Make sure you use YOUR API Key
 # global variables
 MAX_LONG_EXPOSURE = 300000
 MAX_SHORT_EXPOSURE = -100000
-ORDER_LIMIT = 1000
+ORDER_LIMIT = 100
 MIN_SPREAD = 0.05
 
 def get_tick():
@@ -98,7 +98,7 @@ def fetch_price_history(ticker, count):
         prices = [entry['price'] for entry in data]
         return prices[::-1]  # Reverse to get chronological order
 
-def calculate_volatility(ticker, count=60):
+def calculate_volatility(ticker, count=1000):
     prices = fetch_price_history(ticker, count)
     # this returns the std of the log volatility
     # this is the log of how much each trade increases
@@ -142,10 +142,10 @@ def round_price(price):
     tick_size = 0.01
     return round(price / tick_size) * tick_size
 
-MAX_OWL_LONG_EXPOSURE = 10000
-MAX_OWL_SHORT_EXPOSURE = -10000
+MAX_OWL_LONG_EXPOSURE = 1000
+MAX_OWL_SHORT_EXPOSURE = -1000
 
-def OWL_trading_strat(GAMMA = 0.1): 
+def OWL_trading_strat(GAMMA = 0.03): 
     
     best_bid_price, best_ask_price = get_bid_ask('OWL')
     mid_price = (best_bid_price + best_ask_price) / 2
