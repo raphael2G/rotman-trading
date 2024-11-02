@@ -11,14 +11,14 @@ from time import sleep
 
 # numpy, pandas
 
-BASE_URL = "http://flserver.rotman.utoronto.ca:16505"
+BASE_URL = "http://localhost:9999"
 
 s = requests.Session()
-s.headers.update({'X-API-key': 'VEMEYK1N'}) # Make sure you use YOUR API Key
+s.headers.update({'X-API-key': 'TYMMUBC9'}) # Make sure you use YOUR API Key
 
 # global variables
-MAX_LONG_EXPOSURE = 300000
-MAX_SHORT_EXPOSURE = -100000
+MAX_LONG_EXPOSURE = 1000
+MAX_SHORT_EXPOSURE = -1000
 ORDER_LIMIT = 5000
 
 def get_tick():
@@ -92,26 +92,39 @@ def main():
     tick, status = get_tick()
     ticker_list = ['OWL','CROW','DOVE','DUCK']
 
-    while status == 'ACTIVE':        
+    while status == 'ACTIVE':   
 
-        for ticker_symbol in ['OWL', 'DUCK']:
-            
+
+        for ticker_symbol in ['OWL']:
+            print("checking", ticker_symbol)
 
             current_position = get_current_position(ticker_symbol)
             best_bid_price, best_ask_price = get_bid_ask(ticker_symbol)
             
             split_price = round_price((best_bid_price + best_ask_price) / 2)
-
+            print("current position: ", current_position)
             # put 0 spread buy / sell limit orders
-            if current_position + ORDER_LIMIT < MAX_LONG_EXPOSURE:
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'BUY'})
 
-            if current_position - ORDER_LIMIT < MAX_SHORT_EXPOSURE:
-                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'SELL'})
+            if current_position == 0: 
+                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': (ORDER_LIMIT), 'price': best_bid_price + 0.01, 'action': 'BUY'})
+                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': best_ask_price - 0.01, 'action': 'SELL'})
+            elif current_position < 0: 
+                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': min(-current_position, ORDER_LIMIT), 'price': best_bid_price + 0.01 , 'action': 'BUY'})
+            elif current_position > 0: 
+                resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': min(current_position, ORDER_LIMIT), 'price': best_ask_price - 0.01, 'action': 'SELL'})
+            
+            sleep(0.1)
+            s.post('http://localhost:9999/v1/commands/cancel', params = {'ticker': ticker_symbol})
 
-            sleep(0.75) 
+            #if -ORDER_LIMIT <= current_position  and current_position <= 0:
+                #print("bought: ", current_position)
+                #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'BUY'})
 
-            s.post(BASE_URL + "/v1/commands/cancel", params = {'ticker': ticker_symbol}) #'http://localhost:9999/v1/commands/cancel'
+            #if 0 <= current_position and current_position <= ORDER_LIMIT:
+                #print("sold: ", current_position)
+                #resp = s.post(BASE_URL + '/v1/orders', params = {'ticker': ticker_symbol, 'type': 'LIMIT', 'quantity': ORDER_LIMIT, 'price': split_price, 'action': 'SELL'})
+
+            
 
         tick, status = get_tick()
 
