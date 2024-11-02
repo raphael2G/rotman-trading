@@ -18,7 +18,7 @@ s.headers.update({'X-API-key': 'TYMMUBC9'}) # Make sure you use YOUR API Key
 # global variables
 MAX_LONG_EXPOSURE = 300000
 MAX_SHORT_EXPOSURE = -100000
-ORDER_LIMIT = 5000
+ORDER_LIMIT = 1000
 MIN_SPREAD = 0.05
 
 def get_tick():
@@ -142,6 +142,9 @@ def round_price(price):
     tick_size = 0.01
     return round(price / tick_size) * tick_size
 
+MAX_OWL_LONG_EXPOSURE = 10000
+MAX_OWL_SHORT_EXPOSURE = -10000
+
 def OWL_trading_strat(GAMMA = 0.1): 
     
     best_bid_price, best_ask_price = get_bid_ask('OWL')
@@ -160,22 +163,24 @@ def OWL_trading_strat(GAMMA = 0.1):
 
     calculated_price_of_bid = mid_price - base_spread + inventory_adjustment
     calculated_price_of_ask = mid_price + base_spread + inventory_adjustment
+    
+    if current_position + ORDER_LIMIT <= MAX_OWL_LONG_EXPOSURE:
+        buy_resp = s.post('http://localhost:9999/v1/orders', params = {
+            'ticker': 'OWL', 
+            'type': 'LIMIT', 
+            'quantity': ORDER_LIMIT, 
+            'price': round_price(calculated_price_of_bid), 
+            'action': 'BUY'
+        })
 
-    buy_resp = s.post('http://localhost:9999/v1/orders', params = {
-        'ticker': 'OWL', 
-        'type': 'LIMIT', 
-        'quantity': ORDER_LIMIT, 
-        'price': round_price(calculated_price_of_bid), 
-        'action': 'BUY'
-    })
-
-    sell_resp = s.post('http://localhost:9999/v1/orders', params = {
-        'ticker': 'OWL', 
-        'type': 'LIMIT', 
-        'quantity': ORDER_LIMIT, 
-        'price': round_price(calculated_price_of_ask), 
-        'action': 'SELL'
-    })
+    if current_position - ORDER_LIMIT >= MAX_OWL_SHORT_EXPOSURE:
+        sell_resp = s.post('http://localhost:9999/v1/orders', params = {
+            'ticker': 'OWL', 
+            'type': 'LIMIT', 
+            'quantity': ORDER_LIMIT, 
+            'price': round_price(calculated_price_of_ask), 
+            'action': 'SELL'
+        })
 
 
 
